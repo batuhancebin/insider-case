@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lead Collection Campaign</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- for open the pop up -->
+    <button id="openPopupButton">Kampanyayı Aç</button>
+
+    <!-- Modal HTML codes-->
+    <div id="popup" class="modal">
+      <div class="modal-content">
+        <!-- Modal close button-->
+        <span class="close-button" id="closeButton">&times;</span>
+        <!-- Modal image section-->
+        <div class="image-container">
+          <img src="./waterfall.png" alt="Image" height="100%" />
+        </div>
+        <!-- Modal form codes-->
+        <div class="form-container" id="formContainer">
+          <div class="title-container">
+            <h1>Title</h1>
+            <p>Description</p>
+          </div>
+          <div class="input-container">
+            <input type="email" id="emailInput" placeholder="E-Mail" />
+            <input
+              type="tel"
+              id="phoneInput"
+              placeholder="Enter your phone number"
+            />
+            <button id="submitButton">Submit</button>
+            <div class="text-container">
+              <input type="checkbox" id="gdprCheckbox" />
+              <label for="gdprCheckbox">
+                <a
+                  href="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation"
+                  target="_blank"
+                  >By submitting this form, you are giving consent for your
+                  e-mail to be used and disclosed. *</a
+                >
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- Modal coupon codes-->
+        <div class="coupon-container" id="couponContainer">
+          <h1>Amazing!</h1>
+          <p>
+            Here is your discount code you can use in your next order. This
+            coupon code will be valid until 01.01.2020
+          </p>
+          <p class="coupon-text">test <span id="couponCode"></span></p>
+          <button id="copyCouponButton">Copy</button>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    // Elementleri seçme
+    const overlay = document.querySelector(".overlay"),
+      submitButton = document.getElementById("submitButton"),
+      gdprCheckbox = document.getElementById("gdprCheckbox"),
+      gdprTextLink = document.querySelector("#gdprText a"),
+      emailInput = document.getElementById("emailInput"),
+      phoneInput = document.getElementById("phoneInput"),
+      couponContainer = document.getElementById("couponContainer"),
+      couponCodeElement = document.getElementById("couponCode"),
+      copyCouponButton = document.getElementById("copyCouponButton"),
+      openPopupButton = document.getElementById("openPopupButton"),
+      popup = document.getElementById("popup"),
+      closeButton = document.getElementById("closeButton");
+
+    openPopupButton.addEventListener("click", () => {
+      popup.style.display = "block";
+    });
+
+    closeButton.addEventListener("click", () => {
+      popup.style.display = "none";
+    });
+    submitButton.addEventListener("click", () => {
+      const email = emailInput.value.trim();
+      const phone = phoneInput.value.trim();
+
+      // E-posta ve telefon girişlerini doğrulama
+      if (isValidEmail(email) && isValidPhone(phone) && gdprCheckbox.checked) {
+        const data = {
+          email: email,
+          phone: phone,
+        };
+
+        sendLeadData(data);
+      } else {
+        alert(
+          "Lütfen geçerli bir e-posta adresi, telefon numarası girin ve GDPR şartlarını kabul edin."
+        );
+      }
+    });
+
+    closeButton.addEventListener("click", () => {
+      hidePopup();
+    });
+
+    function sendLeadData(data) {
+      const url = "https://opt-interview-projects.onrender.com/lead-collection";
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => response.json())
+        .then((result) => {
+          if (result === "Invalid data") {
+            alert("Geçersiz veri. Lütfen tekrar deneyin.");
+          } else {
+            showCoupon(result.couponCode);
+          }
+        })
+        .catch((error) => {
+          console.error("API hatası:", error);
+        });
+    }
+
+    function showCoupon(couponCode) {
+      formContainer.style.display = "none";
+
+      couponCodeElement.textContent = couponCode;
+      couponContainer.style.display = "flex";
+    }
+
+    // Popup'ı gizleme işlevi
+    function hidePopup() {
+      overlay.style.display = "none";
+      popup.style.display = "none";
+    }
+
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    function isValidPhone(phone) {
+      const phoneRegex = /^\d{10}$/;
+      return phoneRegex.test(phone);
+    }
+
+    copyCouponButton.addEventListener("click", () => {
+      const range = document.createRange();
+      range.selectNode(couponCodeElement);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand("copy");
+      window.getSelection().removeAllRanges();
+      alert("Kupon kodu kopyalandı.");
+    });
+    window.onload = () => {
+      popup.style.display = "block";
+    };
+  </script>
+
+  <style>
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+    }
+    .modal-content {
+      position: relative;
+      margin: 15% auto;
+      max-width: 900px;
+      height: 450px;
+      background-color: #fff;
+      border-radius: 5px;
+      display: flex;
+    }
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .image-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 50%;
+    }
+
+    /*-------*/
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 50%;
+      padding: 20px;
+    }
+
+    .form-container input:not([type="checkbox"]) {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .form-container input:focus {
+      outline: none;
+    }
+
+    .form-container input:invalid {
+      border-color: #dc3545;
+    }
+
+    .form-container input:valid {
+      border-color: #28a745;
+    }
+
+    .form-container button {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 300px;
+      background-color: #000;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .form-container button:hover {
+      background-color: #0069d9;
+    }
+
+    .form-container button:focus {
+      outline: none;
+    }
+    .input-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .title-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .title-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .coupon-container {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 50%;
+      padding: 20px;
+    }
+    .coupon {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .coupon p {
+      margin-bottom: 10px;
+    }
+    .coupon-text {
+      width: 75%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      border-style: dashed;
+      height: 40px;
+    }
+    .coupon-container button {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 300px;
+      background-color: #000;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .coupon-container button:hover {
+      background-color: #0069d9;
+    }
+
+    .coupon-container button:focus {
+      outline: none;
+    }
+  </style>
+</html>
